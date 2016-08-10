@@ -1,6 +1,6 @@
 {
     "name": "lthrt/carve-bundle",
-    "description": "Carves, css and js Bundle for Symfony2",
+    "description": "Carve Bundle for Symfony2",
     "keywords": [
         "lthrt",
         "carve",
