@@ -1,0 +1,3 @@
+lthrt_carve_homepage:
+    path:     /
+    defaults: { _controller: LthrtCarveBundle:Default:index }
