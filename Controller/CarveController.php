@@ -9,31 +9,61 @@ use Symfony\Component\HttpFoundation\Request;
 class CarveController extends Controller
 {
     use \Lthrt\CarveBundle\Traits\Controller\UploadCSVFormTrait;
+    use \Lthrt\CarveBundle\Traits\Controller\AssignFormTrait;
 
     /**
-     * @Route("/review", name="review")
+     * @Route("/key", name="key")
      */
-    public function reviewAction(Request $request)
+    public function keyAction(Request $request)
     {
-        $form = $this->getUploadForm();
-        $form->handleRequest($request);
-
-        $file   = $request->files->get('upload_csv')['csv'];
-        $handle = fopen($file->getRealPath(), 'r');
-        while ($data = fgetcsv($handle)) {
-            var_dump($data);
-        }
-        var_dump("Done");
+        // get carving for rest
+        $maker = $this->get('lthrt_carve.entity_maker');
+        $maker->make($request->request->get('assign'));
 
         return $this->render(
-            'LthrtCarveBundle:Carve:review.html.twig',
+            'LthrtCarveBundle:Carve:key.html.twig',
             [
             ]
         );
     }
 
     /**
-     * @Route("/", name="upload")
+     * @Route("/assign", name="assign")
+     */
+    public function assignAction(Request $request)
+    {
+        $upload = $this->getUploadForm();
+        $upload->handleRequest($request);
+
+        $count  = 0;
+        $limit  = 20;
+        $file   = $request->files->get('upload_csv')['csv'];
+        $handle = fopen($file->getRealPath(), 'r');
+        $data   = [];
+        while (($data[] = fgetcsv($handle)) && $count < $limit) {
+        }
+
+        $fileName = 'carving.csv';
+        $file->move(
+            $this->getParameter('temp_filestore'),
+            $fileName
+        );
+
+        $length = count($data[0]);
+
+        $form = $this->getAssignForm($length)->createView();
+
+        return $this->render(
+            'LthrtCarveBundle:Carve:assign.html.twig',
+            [
+                'data' => $data,
+                'form' => $form,
+            ]
+        );
+    }
+
+    /**
+     * @Route("/upload", name="upload")
      */
     public function uploadAction(Request $request)
     {
