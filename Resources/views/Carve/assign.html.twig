@@ -1,0 +1,49 @@
+
+{% set cols = data[0] | length %}
+{{ form_start(form) }}
+Review {{ form_row(form.submit) }}
+<table>
+    <thead>
+        <tr>
+            <td>Class</td>
+            {% for col in 0..cols-1 %}
+                {% set class = 'class'~col %}
+                <td>
+                    {{ form_widget(attribute(form,class)) }}
+                </td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>Field</td>
+            {% for col in 0..cols-1 %}
+            {% set field = 'field'~col %}
+                <td>
+                    {{ form_widget(attribute(form,field)) }}
+                </td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>Type</td>
+            {% for col in 0..cols-1 %}
+            {% set type = 'type'~col %}
+                <td>
+                    {{ form_widget(attribute(form,type)) }}
+                </td>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for datum in data %}
+            <tr>
+                <td></td>
+                {% for element in datum %}
+                    <td>
+                        {{element}}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{{ form_rest(form) }}

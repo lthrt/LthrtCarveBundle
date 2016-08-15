@@ -18,7 +18,10 @@ class CarveController extends Controller
     {
         // get carving for rest
         $maker = $this->get('lthrt_carve.entity_maker');
-        $maker->make($request->request->get('assign'));
+        // $maker->makeTable($request->request->get('assign'));
+        $file = $this->getParameter('temp_filestore') . '/carving.csv';
+
+        $maker->makeRecords($request->request->get('assign'), $file);
 
         return $this->render(
             'LthrtCarveBundle:Carve:key.html.twig',

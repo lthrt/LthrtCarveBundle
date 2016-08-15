@@ -1,0 +1,7 @@
+{% for property, type in properties %}
+
+{% 
+    include 'LthrtCarveBundle:Entity:property.html.twig' with { 'name' : property, 'type': type } 
+%}
+
+{% endfor %}

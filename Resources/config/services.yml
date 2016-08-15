@@ -1,4 +1,4 @@
 services:
    lthrt_carve.entity_maker:
-       class: Lthrt\CarveBundle\Model\EntityMaker
-       arguments: ["@templating"]
+       class: Lthrt\CarveBundle\Model\TableMaker
+       arguments: ["@templating", "@doctrine"]
