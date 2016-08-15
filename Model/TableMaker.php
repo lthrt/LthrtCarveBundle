@@ -37,6 +37,8 @@ class TableMaker
         foreach ($items as $class => $properties) {
             $table[$class] = $schema->createTable($class);
             $table[$class]->addColumn('id', 'integer');
+            $table[$class]->setPrimaryKey(['id']);
+
             $schema->createSequence($class . "_id_seq");
             foreach ($properties as $property => $type) {
                 if ($type == 'string') {
@@ -119,8 +121,9 @@ class TableMaker
             }
 
             while (($data = fgetcsv($file, 1000, ",")) !== false) {
+                var_dump($data);
                 foreach (array_keys($structures) as $table) {
-                    // $stmt[$table->execute();
+                    $stmt[$table]->execute();
                 }
             }
         }
