@@ -2,7 +2,7 @@
 
 namespace Lthrt\CarveBundle\Model;
 
-use Doctrine\DBAL\Platforms\PostgreSQL92Platform;
+use Doctrine\DBAL\Platforms\PostgreSqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 
 class TableMaker
@@ -29,17 +29,33 @@ class TableMaker
 
     public function makeTable($source = [])
     {
+        var_dump($source);
         $items = $this->getItemsFromSource($source);
-
-        $platform = new PostgreSQL92Platform();
+        var_dump($items);
+        $conn      = $this->doctrine->getManager()->getConnection();
+        $extraSqls = [];
+        if ('pdo_pgsql' == $conn->getParams()['driver']) {
+            $platform = new PostgreSqlPlatform();
+            $postgres = true;
+        } elseif ('pdo_mysql' == $conn->getParams()['driver']) {
+            $platform = new MySqlPlatform();
+            $driver   = false;
+        } else {
+            throw new Exception('Only Postgresql and MySql are supported');
+        }
 
         $schema = new Schema();
         foreach ($items as $class => $properties) {
+            $class         = strtolower($class);
             $table[$class] = $schema->createTable($class);
-            $table[$class]->addColumn('id', 'integer');
+            $table[$class]->addColumn('id', 'integer', ['unsigned' => true, 'strategy' => 'AUTO']);
             $table[$class]->setPrimaryKey(['id']);
 
             $schema->createSequence($class . "_id_seq");
+            if ($postgres) {
+                $extraSqls[] = 'ALTER TABLE ' . $class . ' ALTER id SET DEFAULT nextval(\'' . $class . '_id_seq\');';
+            }
+
             foreach ($properties as $property => $type) {
                 if ($type == 'string') {
                     $table[$class]->addColumn($property, 'string', ['length' => 255]);
@@ -49,13 +65,19 @@ class TableMaker
             }
         }
 
-        $conn = $this->doctrine->getManager()->getConnection();
         $conn->beginTransaction();
 
         try {
             foreach ($schema->toSql($platform) as $sql) {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute();
+            }
+            if ($postgres) {
+                foreach ($extraSqls as $extraSql) {
+                    $stmt = $conn->prepare($extraSql);
+                    $stmt->execute();
+                }
+
             }
             $conn->commit();
         } catch (\Exception $e) {
@@ -88,46 +110,40 @@ class TableMaker
             $conn = $this->doctrine->getManager()->getConnection();
             $conn->beginTransaction();
 
-            foreach ($structures as $table => $structure) {
-                $sql = 'INSERT INTO ' . $table . ' (';
-                $sql .= implode(',', array_values($structure));
-                $sql .= ') VALUES (';
-                $sql .= implode(',',
-                    array_map(
-                        function ($i) {return ':' . $i;},
-                        array_values($structure))
-                );
-                $sql .= ');';
+            try {
+                foreach ($structures as $table => $structure) {
+                    $sql = 'INSERT INTO ' . $table . ' (';
+                    $sql .= implode(',', array_values($structure));
+                    $sql .= ') VALUES (';
+                    $sql .= implode(',',
+                        array_map(
+                            function ($i) {return ':' . $i;},
+                            array_values($structure))
+                    );
+                    $sql .= ');';
 
-                $stmt[$table] = $conn->prepare($sql);
-                foreach ($structure as $key => $field) {
-                    $stmt[$table]->bindParam($field, $data[$key]);
+                    $stmt[$table] = $conn->prepare($sql);
+                    foreach ($structure as $key => $field) {
+                        $stmt[$table]->bindParam($field, $$field);
+                    }
+
                 }
-
-                // $last = end($structure);
-                // foreach ($structure as $key => $field) {
-                //     if (in_array($source['type' . $key], ['text', 'string', 'date', 'datetime'])) {
-                //         $sql .= '\'' . $data[$key] . '\'';
-                //     } elseif (in_array($source['type' . $key], ['integer', 'string'])) {
-                //         $sql .= $data[$key];
-                //     }
-
-                //     if ($field === $last) {
-                //     } else {
-                //         $sql .= ",";
-                //     }
-                // }
-                var_dump($sql);
-            }
-
-            while (($data = fgetcsv($file, 1000, ",")) !== false) {
-                var_dump($data);
-                foreach (array_keys($structures) as $table) {
-                    $stmt[$table]->execute();
-                }
+            } catch (\Exception $e) {
+                $conn->rollBack();
+                throw $e;
             }
         }
-        die;
+
+        while (($data = fgetcsv($file, 1000, ",")) !== false) {
+            foreach ($structures as $table => $structure) {
+                foreach ($structure as $key => $value) {
+                    $$value = $data[$key];
+                }
+                $stmt[$table]->execute();
+            }
+        }
+
+        $conn->commit();
     }
 
     private function cleanSource($source)
