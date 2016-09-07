@@ -14,14 +14,14 @@ class CarveController extends Controller
     /**
      * @Route("/key", name="key")
      */
-    public function keyAction(Request $request)
+    public function tableAction(Request $request)
     {
         // get carving for rest
         $maker = $this->get('lthrt_carve.entity_maker');
         $maker->makeTable($request->request->get('assign'));
         $file = $this->getParameter('temp_filestore') . '/carving.csv';
 
-        $maker->makeRecords($request->request->get('assign'), $file);
+        $maker->makeImport($request->request->get('assign'), $file);
 
         return $this->render(
             'LthrtCarveBundle:Carve:key.html.twig',

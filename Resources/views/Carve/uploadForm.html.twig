@@ -1,4 +1,12 @@
 {{ form_start(form) }}
-{{ form_widget(form.csv) }}<br/>
-{{ form_widget(form.submit) }}
+<table>
+    <tr>
+        <td>
+            {{ form_widget(form.csv) }} 
+        </td>
+        <td>
+            {{ form_widget(form.submit) }}
+        </td>
+    </tr>
+</table>
 {{ form_rest(form) }}

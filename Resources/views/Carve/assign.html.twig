@@ -1,9 +1,15 @@
 
 {% set cols = data[0] | length %}
 {{ form_start(form) }}
-Review {{ form_row(form.submit) }}
+Review {{ form_widget(form.submit) }}
 <table>
     <thead>
+        <tr>
+            <td>Column</td>
+            {% for col in 0..cols-1 %}
+            <th>{{col}}</th>
+            {% endfor %}
+        </tr>
         <tr>
             <td>Class</td>
             {% for col in 0..cols-1 %}
@@ -31,6 +37,15 @@ Review {{ form_row(form.submit) }}
                 </td>
             {% endfor %}
         </tr>
+        <tr>
+            <td>Key</td>
+            {% for col in 0..cols-1 %}
+            {% set key = 'key'~col %}
+                <td>
+                    {{ form_widget(attribute(form,key)) }}
+                </td>
+            {% endfor %}
+        </tr>
     </thead>
     <tbody>
 
@@ -47,3 +62,4 @@ Review {{ form_row(form.submit) }}
     </tbody>
 </table>
 {{ form_rest(form) }}
+{% include 'LthrtCarveBundle:Carve:keyEnableJs.html.twig' %}

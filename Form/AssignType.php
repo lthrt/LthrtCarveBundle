@@ -28,7 +28,7 @@ class AssignType extends AbstractType
                         [
                             'date'     => 'date',
                             'datetime' => 'datetime',
-                            'float'    => 'float,',
+                            'float'    => 'float',
                             'integer'  => 'integer',
                             'key'      => 'key',
                             'string'   => 'string',
@@ -36,6 +36,14 @@ class AssignType extends AbstractType
                         ],
                         'empty_data'  => null,
                         'placeholder' => '',
+                    ]
+                );
+                $builder->add('key' . $element, ChoiceType::class,
+                    [
+                        'choices'     => range(0, $options['count'] - 1),
+                        'empty_data'  => null,
+                        'placeholder' => '',
+                        'required'    => false,
                     ]
                 );
             }
